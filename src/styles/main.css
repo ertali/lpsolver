@@ -1,0 +1,137 @@
+/* Simplex Grapher Styles */
+.simplex-grapher {
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative; /* For tooltip positioning */
+}
+
+.grapher-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.grapher-container h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+canvas {
+    display: block;
+    margin: 0 auto;
+    background-color: #fff;
+}
+
+.point-tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    white-space: pre-line;
+    z-index: 1000;
+    transform: translateX(-50%);
+}
+
+.point-tooltip::after {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid rgba(0, 0, 0, 0.8);
+}
+
+/* Matrix View Styles */
+.simplex-matrix-view {
+    margin: 20px 0;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.matrix-container {
+    margin: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.matrix {
+    border-collapse: collapse;
+    margin: 0 10px;
+    background: white;
+}
+
+.matrix td {
+    padding: 5px 10px;
+    text-align: right;
+    border: 1px solid #ddd;
+    min-width: 60px;
+}
+
+.vector-horizontal {
+    display: inline-block;
+    margin: 0 10px;
+    font-family: monospace;
+}
+
+.equation-system {
+    display: flex;
+    align-items: center;
+    margin: 10px 0;
+    font-family: monospace;
+}
+
+.equation-equals {
+    margin: 0 10px;
+    font-family: monospace;
+}
+
+.current-value {
+    margin: 15px 0;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.current-solution {
+    margin-top: 20px;
+}
+
+.solution-vector {
+    font-family: monospace;
+    margin: 10px 0;
+}
+
+.objective-function {
+    margin: 15px 0;
+    font-family: monospace;
+}
+
+.solution-details {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.vector-group {
+    margin: 10px 0;
+}
+
+.vector-group h5 {
+    margin: 5px 0;
+    color: #666;
+}

@@ -1,0 +1,390 @@
+.app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.solver-selection {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.solver-button {
+    padding: 15px 20px;
+    font-size: 18px;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.solver-button:hover:not(.disabled) {
+    background-color: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.solver-button.disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    color: #666666;
+}
+
+.solver-button.disabled:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    border-radius: 4px;
+    font-size: 14px;
+    white-space: nowrap;
+    margin-bottom: 8px;
+}
+
+.back-button {
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.back-button:hover {
+    background-color: #e8e8e8;
+}
+
+.input-form {
+    background: #f5f5f5;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.size-selectors {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.matrix-input {
+    margin-bottom: 20px;
+}
+
+.objective-function {
+    margin-bottom: 20px;
+    padding: 10px;
+    background: #fff;
+    border-radius: 4px;
+}
+
+.constraint-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #fff;
+    border-radius: 4px;
+}
+
+input[type="number"] {
+    width: 80px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: right;
+}
+
+select {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin: 0 10px;
+}
+
+button {
+    background-color: #4caf50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
+}
+
+button:hover:not(:disabled) {
+    background-color: #45a049;
+}
+
+.tableau {
+    overflow-x: auto;
+    margin: 20px 0;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tableau table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.tableau td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: right;
+    font-family: monospace;
+    min-width: 80px;
+}
+
+.tableau .objective-row {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+.objective-row td {
+    color: #2196f3;
+}
+
+.iterations {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.iteration {
+    background: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.iteration h3 {
+    margin-top: 0;
+    color: #2196f3;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.error-message {
+    color: #d32f2f;
+    background: #ffebee;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+.method-selector {
+    margin: 20px 0;
+    padding: 15px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: none; /* Hidden by default */
+}
+
+/* Show method selector when artificial variables are present */
+.method-selector.show {
+    display: block;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.method-selector select {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.method-selector label {
+    display: block;
+    margin-bottom: 10px;
+    color: #333;
+    font-weight: bold;
+}
+
+.method-description {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.4;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin-top: 10px;
+    border-left: 3px solid #2196f3;
+}
+
+/* Add new styles for interior point view */
+.interior-point-view {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+}
+
+/* Matrix Container and Box Styles */
+.matrix-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Changed to 2 columns */
+    gap: 30px; /* Increased gap */
+    margin: 20px 0;
+    padding: 20px;
+}
+
+.matrix-box {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-width: 200px; /* Added minimum width */
+    overflow-x: auto; /* Added horizontal scroll if needed */
+}
+
+.matrix-box h4 {
+    margin: 0 0 15px 0;
+    color: #2196f3;
+    font-size: 18px;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 8px;
+}
+
+.matrix,
+.vector {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 2px;
+    font-family: "Courier New", monospace;
+}
+
+.matrix td,
+.vector td {
+    border: 1px solid #dee2e6;
+    padding: 8px 12px;
+    text-align: right;
+    font-size: 14px;
+    min-width: 60px;
+    background: #f8f9fa;
+}
+
+/* Initial Point Input Styles */
+.initial-point-input {
+    margin: 20px 0;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.initial-point-input h4 {
+    margin: 0 0 15px 0;
+    color: #2196f3;
+    font-size: 18px;
+}
+
+.initial-point-values {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.initial-point-values label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.initial-point-values input {
+    width: 80px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: right;
+}
+
+.initial-point-description {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.4;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #2196f3;
+}
+
+/* Alpha Selector Styles */
+.alpha-selector {
+    margin: 20px 0;
+    padding: 15px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.alpha-selector label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.alpha-selector input[type="number"] {
+    width: 80px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.alpha-description {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.4;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border-left: 3px solid #2196f3;
+}
