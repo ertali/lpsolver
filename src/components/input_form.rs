@@ -19,7 +19,7 @@ pub struct Props {
 pub enum InputFormData {
     TableauInput(DMatrix<f64>, bool, String),
     MatrixInput(DMatrix<f64>, DVector<f64>, DVector<f64>),
-    InteriorPointInput(DMatrix<f64>, DVector<f64>, DVector<f64>, f64),
+    InteriorPointInput(DMatrix<f64>, DVector<f64>, DVector<f64>, f64, Vec<f64>),
 }
 
 #[derive(Clone, PartialEq)]
@@ -56,13 +56,13 @@ pub enum Msg {
     UpdateAlpha(f64),
     ToggleOptimizationType,
     Submit,
+    UpdateInitialPoint(usize, f64),
 }
 
 impl Component for InputForm {
     type Message = Msg;
     type Properties = Props;
 
-    // 1) When the InputForm is first created
     fn create(ctx: &Context<Self>) -> Self {
         let config = match ctx.props().solver_type {
             SolverType::SimplexTableau => SolverConfig::SimplexTableau {
@@ -90,9 +90,8 @@ impl Component for InputForm {
         }
     }
 
-    // 2) Whenever the parent changes our props (including solver_type), Yew calls `changed(...)`.
+    /*
     fn changed(&mut self, ctx: &Context<Self>, _old_props: &Self::Properties) -> bool {
-        // Recompute the config based on the *new* solver_type prop
         let new_config = match ctx.props().solver_type {
             SolverType::SimplexTableau => SolverConfig::SimplexTableau {
                 method: "big_m".to_string(),
@@ -107,14 +106,13 @@ impl Component for InputForm {
             },
         };
 
-        // If it's different from what we had, update our state and re-render
         if self.config != new_config {
             self.config = new_config;
             true
         } else {
             false
         }
-    }
+    }*/
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
@@ -154,15 +152,9 @@ impl Component for InputForm {
             Msg::UpdateConstraintSign(idx, sign) => {
                 if idx < self.constraint_signs.len() {
                     self.constraint_signs[idx] = sign;
-
-                    // First check for artificial variables and store the result
                     let needs_artificial = self.has_artificial_variables();
-
-                    // Then use the stored result for the conditional logic
                     if let SolverConfig::SimplexTableau { method } = &mut self.config {
                         if needs_artificial {
-                            // If artificial variables are needed, keep the method as is
-                            // (or set a default if unset)
                             if method.is_empty() {
                                 *method = "big_m".to_string();
                             }
@@ -173,7 +165,6 @@ impl Component for InputForm {
                     false
                 }
             }
-
             Msg::UpdateRHSValue(idx, val) => {
                 if idx < self.rhs_values.len() {
                     self.rhs_values[idx] = val;
@@ -187,13 +178,11 @@ impl Component for InputForm {
                 true
             }
             Msg::UpdateMethod(new_method) => {
-                // First check for artificial variables and store the result
                 let needs_artificial = self.has_artificial_variables();
-
                 if let SolverConfig::SimplexTableau { method } = &mut self.config {
                     *method = new_method;
                     if needs_artificial {
-                        true // Update UI if method change is valid
+                        true
                     } else {
                         *method = "Big-M".to_string();
                         true
@@ -206,9 +195,24 @@ impl Component for InputForm {
                 self.maximization = !self.maximization;
                 true
             }
-            Msg::UpdateAlpha(alpha) => {
+            Msg::UpdateAlpha(new_alpha) => {
                 if let SolverConfig::InteriorPoint { ref mut alpha, .. } = self.config {
-                    *alpha = alpha.max(0.0).min(1.0);
+                    *alpha = new_alpha.max(0.0).min(1.0);
+                    true
+                } else {
+                    false
+                }
+            }
+            Msg::UpdateInitialPoint(idx, val) => {
+                if let SolverConfig::InteriorPoint {
+                    ref mut initial_feasible,
+                    ..
+                } = self.config
+                {
+                    if idx >= initial_feasible.len() {
+                        initial_feasible.resize(idx + 1, 0.0);
+                    }
+                    initial_feasible[idx] = val;
                     true
                 } else {
                     false
@@ -221,7 +225,6 @@ impl Component for InputForm {
 
         html! {
             <div class="input-form">
-                // Optimization type toggle
                 <div class="optimization-type">
                     <select
                         value={if self.maximization { "max" } else { "min" }}
@@ -235,7 +238,6 @@ impl Component for InputForm {
                     <span>{" Z = "}</span>
                 </div>
 
-                // Variables and constraints input
                 <div class="size-selectors">
                     <div>
                         <label>{"Variables: "}
@@ -267,7 +269,6 @@ impl Component for InputForm {
                     </div>
                 </div>
 
-                // Objective function and constraints input
                 <div class="matrix-input">
                     <div class="objective-function">
                         {for (0..self.variables).map(|j| {
@@ -335,44 +336,80 @@ impl Component for InputForm {
                     </div>
                 </div>
 
-                // Solver-specific configuration
                 {match &self.config {
-                    SolverConfig::SimplexTableau { method } => html! {
-                        <div class="method-selector">
-                            <select
-                                value={method.clone()}
-                                onchange={link.callback(|e: Event| {
-                                    let select: HtmlSelectElement = e.target_unchecked_into();
-                                    Msg::UpdateMethod(select.value())
-                                })}>
-                                <option value="big_m">{"Big-M Method"}</option>
-                                <option value="two_phase">{"Two-Phase Method"}</option>
-                            </select>
-                        </div>
+                    SolverConfig::SimplexTableau { method } => {
+                        let needs_artificial = self.has_artificial_variables();
+                        html! {
+                            if needs_artificial {
+                                <div class="method-selector">
+                                    <label>{"Solution Method:"}</label>
+                                    <select
+                                        value={method.clone()}
+                                        onchange={link.callback(|e: Event| {
+                                            let select: HtmlSelectElement = e.target_unchecked_into();
+                                            Msg::UpdateMethod(select.value())
+                                        })}>
+                                        <option value="big_m">{"Big-M Method"}</option>
+                                        <option value="two_phase">{"Two-Phase Method"}</option>
+                                    </select>
+                                    <div class="method-description">
+                                        {"Choose between Big-M or Two-Phase method for handling artificial variables."}
+                                    </div>
+                                </div>
+                            }
+                        }
                     },
-                    SolverConfig::InteriorPoint { alpha, .. } => html! {
-                        <div class="alpha-selector">
-                            <label>{"Step Size (α): "}
-                                <input
-                                    type="number"
-                                    min="0"
-                                    max="1"
-                                    step="0.1"
-                                    value={alpha.to_string()}
-                                    onchange={link.callback(|e: Event| {
-                                        let input: HtmlInputElement = e.target_unchecked_into();
-                                        Msg::UpdateAlpha(input.value().parse().unwrap_or(0.5))
+                    SolverConfig::InteriorPoint { alpha, initial_feasible } => html! {
+                        <>
+                            <div class="initial-point-input">
+                                <h4>{"Initial Feasible Point"}</h4>
+                                <div class="initial-point-values">
+                                    {for (0..self.variables).map(|i| {
+                                        html! {
+                                            <label>
+                                                {format!("x{} = ", i + 1)}
+                                                <input
+                                                    type="number"
+                                                    step="0.1"
+                                                    value={initial_feasible.get(i).cloned().unwrap_or(0.0).to_string()}
+                                                    onchange={link.callback(move |e: Event| {
+                                                        let input: HtmlInputElement = e.target_unchecked_into();
+                                                        Msg::UpdateInitialPoint(i, input.value().parse().unwrap_or(0.0))
+                                                    })}
+                                                />
+                                            </label>
+                                        }
                                     })}
-                                />
-                            </label>
-                            <div class="alpha-description">
-                                {"α controls the step size in each iteration (between 0 and 1)."}
+                                </div>
+                                <div class="initial-point-description">
+                                    {"Enter an initial feasible point that satisfies all constraints."}
+                                </div>
                             </div>
-                        </div>
+
+                            <div class="alpha-selector">
+                                <label>{"Step Size (α): "}
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="1"
+                                        step="0.1"
+                                        value={alpha.to_string()}
+                                        onchange={
+                                            let alpha = *alpha;
+                                            link.callback(move |e: Event| {
+                                            let input: HtmlInputElement = e.target_unchecked_into();
+                                            Msg::UpdateAlpha(input.value().parse().unwrap_or(alpha))
+                                        })}
+                                    />
+                                </label>
+                                <div class="alpha-description">
+                                    {"α controls the step size in each iteration (between 0 and 1)."}
+                                </div>
+                            </div>
+                        </>
                     },
                     _ => html! {},
                 }}
-                // Submit button
                 <button onclick={ctx.link().callback(|_| Msg::Submit)}>
                     {"Solve"}
                 </button>
@@ -402,7 +439,6 @@ impl InputForm {
 
     fn submit(&self, ctx: &Context<Self>) {
         match &self.config {
-            // Simplex Tableau
             SolverConfig::SimplexTableau { method } => {
                 if let Some(tableau) = self.create_tableau() {
                     ctx.props().on_submit.emit(InputFormData::TableauInput(
@@ -412,8 +448,6 @@ impl InputForm {
                     ));
                 }
             }
-
-            // Simplex Matrix
             SolverConfig::SimplexMatrix => {
                 if let Some((a, b, c)) = self.create_matrix_form() {
                     ctx.props()
@@ -421,13 +455,20 @@ impl InputForm {
                         .emit(InputFormData::MatrixInput(a, b, c));
                 }
             }
-
-            // Interior Point (the block you had commented out)
-            SolverConfig::InteriorPoint { alpha, .. } => {
+            SolverConfig::InteriorPoint {
+                alpha,
+                initial_feasible,
+            } => {
                 if let Some((a, b, c)) = self.create_matrix_form() {
                     ctx.props()
                         .on_submit
-                        .emit(InputFormData::InteriorPointInput(a, b, c, *alpha));
+                        .emit(InputFormData::InteriorPointInput(
+                            a,
+                            b,
+                            c,
+                            *alpha,
+                            initial_feasible.clone(),
+                        ));
                 }
             }
         }
@@ -435,7 +476,6 @@ impl InputForm {
 
     fn create_tableau(&self) -> Option<DMatrix<f64>> {
         if let SolverConfig::SimplexTableau { method } = &self.config {
-            // Convert method string to artificial handler value
             let artificial_handler = match method.as_str() {
                 "big_m" => 0,
                 "two_phase" => 1,
@@ -457,11 +497,9 @@ impl InputForm {
     }
 
     fn create_matrix_form(&self) -> Option<(DMatrix<f64>, DVector<f64>, DVector<f64>)> {
-        // Based on self.variables, self.constraints, self.objective_coeffs, etc.
         let m = self.constraints;
         let n = self.variables;
 
-        // Build the A matrix from constraint_coeffs
         let mut a_data = Vec::with_capacity(m * n);
         for i in 0..m {
             for j in 0..n {
@@ -470,12 +508,8 @@ impl InputForm {
         }
         let a = DMatrix::from_row_slice(m, n, &a_data);
 
-        // Build b from rhs_values
         let b = DVector::from_iterator(m, self.rhs_values.iter().cloned());
 
-        // Build c from objective_coeffs.
-        // If we are maximizing, typically the matrix-form uses +c in the objective,
-        // so you might keep it as is, or invert sign if your convention is different.
         let sign = if self.maximization { 1.0 } else { -1.0 };
         let c_vals: Vec<f64> = self
             .objective_coeffs

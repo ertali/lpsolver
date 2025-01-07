@@ -67,6 +67,8 @@ pub enum SolverData {
         current_x: DVector<f64>,
 
         alpha: f64,
+
+        initial_point: Vec<f64>,
     },
 }
 
@@ -75,7 +77,7 @@ pub enum Msg {
     SetProblemSize(usize, usize),
     StartSimplexTableau(DMatrix<f64>, bool, String),
     StartSimplexMatrix(DMatrix<f64>, DVector<f64>, DVector<f64>),
-    StartInteriorPoint(DMatrix<f64>, DVector<f64>, DVector<f64>, f64),
+    StartInteriorPoint(DMatrix<f64>, DVector<f64>, DVector<f64>, f64, Vec<f64>),
     SetInitialPoint(DVector<f64>),
     NextStep,
     Reset,
@@ -131,6 +133,7 @@ impl Component for App {
                         cp_vector: DVector::zeros(0),
                         current_x: DVector::zeros(0),
                         alpha: 0.5,
+                        initial_point: vec![],
                     },
 
                     _ => SolverData::None,
@@ -182,20 +185,33 @@ impl Component for App {
                 true
             }
 
-            Msg::StartInteriorPoint(a, b, c, alpha) => {
+            Msg::StartInteriorPoint(a, b, c, alpha, initial) => {
+                // Typically the user’s initial point has length == number of variables:
+                let n = a.ncols();
+
+                // If the user’s “initial” vector is empty or the wrong length, you can fallback:
+                let feasible_x = if initial.len() == n {
+                    DVector::from_vec(initial.clone())
+                } else {
+                    // Fallback: fill with 1.0 if the user input is missing
+                    DVector::from_element(n, 1.0)
+                };
+
                 self.solver_data = SolverData::InteriorPoint {
                     a_matrix: a.clone(),
                     b_vector: b.clone(),
                     c_vector: c.clone(),
 
-                    // initially blank or zero for iteration display
                     d_matrix: DMatrix::zeros(a.nrows(), a.ncols()),
                     a_tilde_matrix: DMatrix::zeros(a.nrows(), a.ncols()),
                     c_tilde_vector: DVector::zeros(a.ncols()),
                     p_matrix: DMatrix::identity(a.ncols(), a.ncols()),
                     cp_vector: DVector::zeros(b.len()),
-                    current_x: DVector::from_element(b.len(), 1.0), // or 0s / user-chosen / etc.
 
+                    // Now use the user’s feasible_x
+                    current_x: feasible_x,
+
+                    initial_point: initial.clone(), // Keep if you want to store it
                     alpha,
                 };
                 self.interior_iterations.clear();
@@ -280,15 +296,16 @@ impl Component for App {
                         c_tilde_vector,
                         p_matrix,
                         cp_vector,
+                        initial_point,
                     } => {
-                        // Build an InteriorPointProblem (or skip if you want to call your function directly).
+                        // Build an InteriorPointProblem with `current_x` as the starting point
                         let mut problem = InteriorPointProblem {
                             a_matrix: a_matrix.clone(),
                             b_vector: b_vector.clone(),
                             c_vector: c_vector.clone(),
-                            x_vector: current_x.clone(),
+                            x_vector: current_x.clone(), // <--- user’s “feasible_x” from above
                             alpha: *alpha,
-                            constraint_types: vec![], // optional
+                            constraint_types: vec![],
                         };
 
                         // Perform one iteration
@@ -402,8 +419,8 @@ impl Component for App {
                                     Msg::StartSimplexTableau(matrix, is_max, method),
                                 InputFormData::MatrixInput(a, b, c) =>
                                     Msg::StartSimplexMatrix(a, b, c),
-                                InputFormData::InteriorPointInput(a, b, c, alpha) =>
-                                    Msg::StartInteriorPoint(a, b, c, alpha),
+                                InputFormData::InteriorPointInput(a, b, c, alpha, initial) =>
+                                    Msg::StartInteriorPoint(a, b, c, alpha, initial),
                             })}
                             on_size_change={link.callback(|(vars, cons)| Msg::SetProblemSize(vars, cons))}
                             solver_type={self.solver_type.clone()}
