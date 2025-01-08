@@ -1,10 +1,19 @@
 <!doctype html>
-<html>
+<html lang="en">
     <head>
         <meta charset="utf-8" />
         <title>Linear Programming Solver</title>
         <link data-trunk rel="css" href="src/styles/app.css" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     </head>
-    <body></body>
+    <body>
+        <!-- Mounting point for Yew application -->
+        <div id="app">Loading...</div>
+
+        <!-- Load the Yew app -->
+        <script type="module">
+            import init from "./pkg/lpsolver3.js"; // Replace with your actual package name
+            init().catch(console.error);
+        </script>
+    </body>
 </html>
