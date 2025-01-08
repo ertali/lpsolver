@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <title>Linear Programming Solver</title>
-        <link data-trunk rel="css" href="src/styles/app.css" />
+        <link data-trunk rel="css" href="./styles/app.css" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     </head>
     <body>
@@ -12,8 +12,15 @@
 
         <!-- Load the Yew app -->
         <script type="module">
-            import init from "./pkg/lpsolver3.js"; // Replace with your actual package name
-            init().catch(console.error);
+            console.log("Starting WASM initialization...");
+            import init from "./pkg/lpsolver3.js";
+            init()
+                .then(() => {
+                    console.log("WASM successfully initialized!");
+                })
+                .catch((err) => {
+                    console.error("WASM failed to initialize:", err);
+                });
         </script>
     </body>
 </html>
