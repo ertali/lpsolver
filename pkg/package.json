@@ -1,0 +1,15 @@
+{
+  "name": "lpsolver3",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "lpsolver3_bg.wasm",
+    "lpsolver3.js",
+    "lpsolver3.d.ts"
+  ],
+  "main": "lpsolver3.js",
+  "types": "lpsolver3.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
